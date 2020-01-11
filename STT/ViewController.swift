@@ -20,11 +20,14 @@ private let speechRecognizer = SFSpeechRecognizer(locale: Locale.init(identifier
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
     private let audioEngine = AVAudioEngine()
+    var timer : Timer?
+    var resultStr: String = ""
     
     @IBAction func speechToText(_ sender: Any) {
         if audioEngine.isRunning {
             audioEngine.stop()
             recognitionRequest?.endAudio()
+            self.recognitionTask?.cancel()
             button.isEnabled = false
             button.setTitle("Start Recording", for: .normal)
         } else {
@@ -65,6 +68,20 @@ private let speechRecognizer = SFSpeechRecognizer(locale: Locale.init(identifier
         recognitionRequest.shouldReportPartialResults = true
         
         recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest, resultHandler: { (result, error) in
+            self.timer?.invalidate()
+//            timer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: Selector("didFinishTalk"), userInfo: nil, repeats: false)
+            self.timer = Timer.scheduledTimer(withTimeInterval:1.0, repeats:false) { _ in
+
+                self.timer?.invalidate()
+//                Logger.log.debug("FINAL result!.bestTranscription.formattedString: \(String(describing: result.bestTranscription.formattedString))")
+
+//                self.voiceRecognizingAlert(str: self.resultStr)
+                
+                self.audioEngine.stop() // オーティオ入力を中断
+                recognitionRequest.endAudio() // 音声認識も中断
+                self.recognitionTask?.cancel()
+            }
+            
             
             var isFinal = false
             
